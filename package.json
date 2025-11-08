@@ -1,0 +1,34 @@
+{
+  "name": "t-nixarva-router",
+  "version": "1.0.0",
+  "description": "AI proxy and API developer kit with modular routing system",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./proxy": "./src/modules/proxy.js",
+    "./validator": "./src/modules/validator.js",
+    "./logger": "./src/modules/logger.js",
+    "./rate-limiter": "./src/modules/rate-limiter.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "example": "node examples/basic-usage.js"
+  },
+  "keywords": [
+    "api",
+    "proxy",
+    "router",
+    "ai",
+    "middleware",
+    "http"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

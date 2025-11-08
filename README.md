@@ -1,90 +1,174 @@
-# Birleşik AI Model Yönlendirme Katmanı
+# T-NixarvaRouter
 
-## 📋 Açıklama
+AI proxy and API developer kit with modular routing system.
 
-T-NixarvaRouter, farklı AI model sağlayıcılarını (OpenAI, Claude, Gemini, Groq, vb.) birleştiren standartlaştırılmış bir API yönlendirme katmanıdır.
+## Features
 
-## 🎯 Amaç
+- 🚀 ES Module support (Node.js 18+)
+- 🔌 Modular middleware architecture
+- 🔄 Built-in proxy module with retry logic
+- ✅ Request validation
+- 📊 Structured logging
+- ⚡ Rate limiting
+- 🎯 Simple routing system
 
-- Kullanıcıdan tek bir standartlaştırılmış istek formatı kabul etmek
-- Seçilen model backend'ine bakılmaksızın isteği normalize etmek
-- İsteği doğru parametre çevirisiyle seçilen sağlayıcıya yönlendirmek
-- Çıktıyı standartlaştırılmış birleşik bir JSON yapısında döndürmek
-
-## 🔧 Davranış Kuralları
-
-### 1. Giriş Formatı
-```json
-{
-  "model": "provider_model_name",
-  "messages": [
-    { "role": "user", "content": "..." }
-  ]
-}
-```
-
-### 2. Sağlayıcı Dönüşümleri
-
-İstek, dahili olarak doğru sağlayıcı API formatına dönüştürülür:
-
-- **OpenAI** → `{ model, messages }`
-- **Claude** → `{ model, max_tokens, messages: [{ role: "user", content }] }`
-- **Gemini** → Uygun chat parametrelerine dönüştürülür
-
-### 3. Çıktı Formatı
-
-```json
-{
-  "output": "final text response",
-  "provider": "provider-name",
-  "model": "model-name",
-  "tokens": { 
-    "input": x, 
-    "output": y, 
-    "total": z 
-  }
-}
-```
-
-### 4. Tutarlılık
-
-- Sağlayıcıya özgü formatlama, markdown veya sistem metni içermez
-- Yanıtlar tüm sağlayıcılar arasında tutarlı tutulur
-- Kullanıcı tarafından açıkça istenmedikçe ek formatlama yapılmaz
-
-## 🚀 Özellikler
-
-- ✅ Çoklu AI sağlayıcı desteği
-- ✅ Standartlaştırılmış istek/yanıt formatı
-- ✅ Otomatik parametre dönüşümü
-- ✅ Birleşik token kullanım raporlaması
-- ✅ Sağlayıcılar arası tutarlılık
-
-## 📦 Kurulum
+## Installation
 
 ```bash
-# Projeyi klonlayın
-git clone https://github.com/kullanıcı_adınız/T-NixarvaRouter.git
-
-# Proje dizinine gidin
-cd T-NixarvaRouter
-
-# Bağımlılıkları yükleyin (yakında)
-# npm install
+npm install t-nixarva-router
 ```
 
-## 💻 Kullanım
+## Quick Start
 
-Yakında eklenecek...
+```javascript
+import TNixarvaRouter from 't-nixarva-router';
 
-## 🤝 Katkıda Bulunma
+const router = new TNixarvaRouter();
 
-Katkılarınızı bekliyoruz! Pull request göndermekten çekinmeyin.
+router.addRoute('/hello', async (context) => {
+  return {
+    status: 200,
+    body: { message: 'Hello World!' }
+  };
+});
 
-## 📄 Lisans
+const response = await router.handle({
+  method: 'GET',
+  path: '/hello',
+  headers: {}
+});
+```
+
+## Modules
+
+### Logger Module
+
+```javascript
+import { LoggerModule } from 't-nixarva-router/logger';
+
+const logger = LoggerModule.create({
+  level: 'info',
+  format: 'json',
+  colorize: true
+});
+
+router.use(logger.middleware());
+```
+
+### Rate Limiter Module
+
+```javascript
+import { RateLimiterModule } from 't-nixarva-router/rate-limiter';
+
+const limiter = RateLimiterModule.create({
+  maxRequests: 100,
+  windowMs: 60000
+});
+
+router.use(limiter.middleware());
+```
+
+### Validator Module
+
+```javascript
+import { ValidatorModule } from 't-nixarva-router/validator';
+
+const validator = ValidatorModule.create({
+  userSchema: {
+    email: { required: true, type: 'string', pattern: /^.+@.+\..+$/ },
+    age: { type: 'number', min: 0, max: 150 }
+  }
+});
+
+router.use(validator.middleware('userSchema'));
+```
+
+### Proxy Module
+
+```javascript
+import { ProxyModule } from 't-nixarva-router/proxy';
+
+const proxy = ProxyModule.create({
+  timeout: 10000,
+  retries: 3,
+  transformResponse: (data) => ({ success: true, data })
+});
+
+router.use(proxy.middleware());
+
+router.addRoute('/api/*', async (context) => {
+  context.request.proxy = {
+    targetURL: 'https://api.example.com',
+    options: { headers: { 'Authorization': 'Bearer token' } }
+  };
+  return context;
+});
+```
+
+## Examples
+
+See the `examples/` directory:
+
+- `basic-usage.js` - Basic routing and middleware
+- `proxy-usage.js` - Proxy configuration
+
+Run examples:
+
+```bash
+npm run example
+```
+
+## API Reference
+
+### TNixarvaRouter
+
+#### Constructor
+
+```javascript
+new TNixarvaRouter(config)
+```
+
+**Config options:**
+- `baseURL` - Base URL for the router
+- `timeout` - Default timeout in milliseconds
+
+#### Methods
+
+- `use(middleware)` - Add middleware
+- `addRoute(path, handler)` - Register route handler
+- `handle(request)` - Process request
+
+### Context Object
+
+```javascript
+{
+  request: {
+    method: 'GET',
+    path: '/path',
+    headers: {},
+    body: {},
+    query: {},
+    params: {}
+  },
+  response: null,
+  config: {},
+  state: {}
+}
+```
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev
+
+# Run examples
+npm run example
+```
+
+## License
 
 MIT
-
-## 📧 İletişim
-
-Proje hakkında sorularınız için issue açabilirsiniz.
